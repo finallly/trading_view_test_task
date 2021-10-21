@@ -1,0 +1,28 @@
+version: "3.3"
+
+services:
+  database:
+    image: postgres
+    container_name: database
+    ports:
+    - 5431:5432
+    environment:
+      - POSTGRES_DB=trading_view_test
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+  migrations:
+    build: .
+    command: python manage.py makemigrations && python manage.py migrate
+  web:
+    build: .
+    container_name: web
+    restart: unless-stopped
+    working_dir: /app/
+    command: python manage.py runserver 0.0.0.0:80
+    volumes:
+    - .:/app/
+    ports:
+    - 8000:8000
+    depends_on:
+      - database
+      - migrations
