@@ -1,6 +1,7 @@
 from typing import Type
 
-from .transactions import TransferTransaction, LetterCreditTransaction, InvoiceTransaction, AbstractTransaction
+from .transactions import TransferTransaction, LetterCreditTransaction, InvoiceTransaction, \
+    AbstractTransaction
 
 
 transaction_mapping = {
