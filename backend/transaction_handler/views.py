@@ -1,3 +1,5 @@
+from django.db import transaction
+from django.db.models import F, Sum
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.exceptions import APIException
@@ -10,6 +12,7 @@ from .transaction_logic import TransactionHandler
 class TransactionCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         try:
             request_author = request.user
@@ -49,6 +52,7 @@ class TransactionCreateView(APIView):
 class TransactionCancelView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         try:
             transaction_checksum = request.data['checksum']
@@ -78,6 +82,7 @@ class TransactionCancelView(APIView):
 class TransactionConfirmView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         try:
             transaction_checksum = request.data['checksum']
@@ -91,8 +96,9 @@ class TransactionConfirmView(APIView):
                     raise Exception('only sender can confirm this transaction')
 
             if transaction.type == 'letter_of_credit':
-                if transaction.account_to.owner != request_author:
-                    raise Exception('only receiver can confirm this transaction')
+                if transaction.account_to.owner == request_author \
+                       or transaction.account_from.owner == request_author:
+                    raise Exception('only third party can confirm this transaction')
 
             transaction_handler = TransactionHandler(
                 transaction.type
@@ -105,3 +111,51 @@ class TransactionConfirmView(APIView):
             )
         except Exception as exception:
             raise APIException(detail=exception.args[0])
+
+
+class CreateAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            account_data = request.data
+            account_data['owner'] = request.user
+            account = Account.create(**account_data)
+
+            return JsonResponse(
+                data={'number': account.number},
+                status=201
+            )
+        except Exception as exception:
+            raise APIException(detail=exception.args[0])
+
+
+class TopUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        users = Transaction.objects.values(
+            'user_from_id'
+        )
+        transactions = users.filter(
+            account_to__owner_id=F('user_from_id'),
+            account_from__owner_id=F('user_from_id')
+        )
+        totals = transactions.order_by(
+            'user_from_id'
+        ).annotate(
+            total=Sum('amount')
+        )
+        totals = sorted(
+            [
+                obj for obj in totals
+            ],
+            key=lambda obj: obj['total']
+        )[::-1]
+
+        return JsonResponse(
+            data={
+                'top': totals
+            },
+            status=200
+        )

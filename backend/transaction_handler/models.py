@@ -20,7 +20,7 @@ STATUS_TYPES = (
 
 class Account(models.Model):
 	number = models.CharField(
-		max_length=64,
+		max_length=67,
 		blank=True
 	)
 	owner = models.ForeignKey(
@@ -34,13 +34,25 @@ class Account(models.Model):
 	class Meta:
 		db_table = 'account'
 
-	def create(self, **kwargs):
+	@classmethod
+	def __hash_to_account_number(cls, checksum: str) -> str:
+		args = [iter(checksum)] * 16
+		return '-'.join(
+			[
+				''.join(index) for index in zip(*args)
+			]
+		)
+
+	@classmethod
+	def create(cls, **kwargs):
 		account = Account(**kwargs)
-		account_number = hashlib.sha256(
+		account_hash = hashlib.sha256(
 			f'{account.owner}{account.id}'.encode('utf-8')
 		).hexdigest()
-		account.number = account_number
+		account.number = cls.__hash_to_account_number(account_hash)
 		account.save()
+
+		return account
 
 
 class Transaction(models.Model):
