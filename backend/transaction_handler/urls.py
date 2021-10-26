@@ -22,6 +22,6 @@ urlpatterns = [
         f'account/create/', CreateAccountView.as_view()
     ),
     path(
-        f'account/most/', TopUserView.as_view()
+        f'account/top/', TopUserView.as_view()
     )
 ]
