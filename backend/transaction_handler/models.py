@@ -47,7 +47,7 @@ class Account(models.Model):
 	def create(cls, **kwargs):
 		account = Account(**kwargs)
 		account_hash = hashlib.sha256(
-			f'{account.owner}{account.id}'.encode('utf-8')
+			f'{account.owner}{timezone.now()}'.encode('utf-8')
 		).hexdigest()
 		account.number = cls.__hash_to_account_number(account_hash)
 		account.save()

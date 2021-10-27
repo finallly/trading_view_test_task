@@ -5,14 +5,20 @@ services:
     image: postgres
     container_name: database
     ports:
-    - 5431:5432
+    - 5432:5432
     environment:
       - POSTGRES_DB=trading_view_test
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
   migrations:
     build: .
-    command: python manage.py makemigrations && python manage.py migrate
+    container_name: migrations
+    working_dir: /app/
+    command: python backend/manage.py migrate
+    volumes:
+      - .:/app/
+    depends_on:
+      - database
   web:
     build: .
     container_name: web

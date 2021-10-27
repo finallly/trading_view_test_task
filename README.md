@@ -24,7 +24,23 @@ docker-compose up --build
 ```
 
 ## api interface
-### token
+### create_user
+```
+POST: api/user/create/
+Header: Content-type - application/json
+Body: Json
+{
+    "username": "",
+    "password": ""
+}
+
+Response: Json
+
+{
+  "username": "username"
+}
+```
+### create_token
 ```
 POST: api/auth/
 Header: Content-type - application/json

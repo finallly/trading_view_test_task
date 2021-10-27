@@ -53,6 +53,8 @@ WSGI_APPLICATION = 'project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': 'database',
+        'PORT': 5432,
         'NAME': 'trading_view_test',
         'USER': 'root',
         'PASSWORD': 'root'

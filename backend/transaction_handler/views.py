@@ -1,9 +1,10 @@
+from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import F, Sum
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.exceptions import APIException
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .models import Transaction, Account
 from .transaction_logic import TransactionHandler
@@ -128,6 +129,24 @@ class CreateAccountView(APIView):
             )
         except Exception as exception:
             raise APIException(detail=exception.args[0])
+
+
+class CreateUserView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        user = User.objects.create_user(
+            username=request.data['username'],
+            password=request.data['password'],
+            email=''
+        )
+
+        return JsonResponse(
+           data={
+               'user': user.username
+           },
+           status=201
+        )
 
 
 class TopUserView(APIView):

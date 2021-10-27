@@ -1,7 +1,8 @@
 from django.urls import path
 from rest_framework.authtoken import views
 
-from .views import TransactionCreateView, TransactionCancelView, TransactionConfirmView, CreateAccountView, TopUserView
+from .views import TransactionCreateView, TransactionCancelView, TransactionConfirmView, CreateAccountView, TopUserView, \
+    CreateUserView
 
 tag = 'transaction'
 
@@ -23,5 +24,8 @@ urlpatterns = [
     ),
     path(
         f'account/top/', TopUserView.as_view()
+    ),
+    path(
+        f'user/create/', CreateUserView.as_view()
     )
 ]
